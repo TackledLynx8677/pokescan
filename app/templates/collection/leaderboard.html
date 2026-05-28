@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Leaderboard — PokéScan{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Leaderboard</h1>
+            <p class="page-subtitle">Ranked by total collection value</p>
+        </div>
+    </div>
+
+    <div class="sub-nav">
+        <a href="{{ url_for('collection.library') }}"     class="sub-link">Library</a>
+        <a href="{{ url_for('collection.decks') }}"       class="sub-link">Decks</a>
+        <a href="{{ url_for('collection.wishlist') }}"    class="sub-link">Wishlist</a>
+        <a href="{{ url_for('collection.leaderboard') }}" class="sub-link active">Leaderboard</a>
+    </div>
+
+    <div class="leaderboard">
+        {% for user in users %}
+        <div class="lb-row {% if user.id == current_user.id %}lb-you{% endif %}
+                           {% if loop.index == 1 %}lb-gold{% endif %}
+                           {% if loop.index == 2 %}lb-silver{% endif %}
+                           {% if loop.index == 3 %}lb-bronze{% endif %}">
+            <span class="lb-rank">
+                {% if loop.index == 1 %}🥇
+                {% elif loop.index == 2 %}🥈
+                {% elif loop.index == 3 %}🥉
+                {% else %}#{{ loop.index }}{% endif %}
+            </span>
+            <span class="lb-name">
+                {{ user.username }}
+                {% if user.id == current_user.id %}<span class="lb-you-badge">You</span>{% endif %}
+            </span>
+            <span class="lb-cards">{{ user.unique_card_count }} cards</span>
+            <span class="lb-value">${{ "%.2f"|format(user.collection_value) }}</span>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <p>No trainers yet — be the first to scan!</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

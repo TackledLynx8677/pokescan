@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Manage Users — PokéScan{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <h1 class="page-title">User Management</h1>
+    </div>
+
+    <div class="sub-nav">
+        <a href="{{ url_for('admin.dashboard') }}"    class="sub-link">Overview</a>
+        <a href="{{ url_for('admin.manage_cards') }}" class="sub-link">Cards</a>
+        <a href="{{ url_for('admin.manage_users') }}" class="sub-link active">Users</a>
+    </div>
+
+    <div class="table-wrap">
+        <table class="admin-table admin-table-full">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Cards</th>
+                    <th>Scans</th>
+                    <th>Value</th>
+                    <th>Joined</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for user in users %}
+            <tr {% if user.id == current_user.id %}class="lb-you"{% endif %}>
+                <td><strong>{{ user.username }}</strong></td>
+                <td>{{ user.email }}</td>
+                <td>
+                    <span class="badge {{ 'badge-admin' if user.is_admin else 'badge-user' }}">
+                        {{ user.role }}
+                    </span>
+                </td>
+                <td>{{ user.unique_card_count }}</td>
+                <td>{{ user.scans|length }}</td>
+                <td>${{ "%.2f"|format(user.collection_value) }}</td>
+                <td>{{ user.created_at.strftime('%d %b %Y') }}</td>
+                <td class="table-actions">
+                    {% if user.id != current_user.id %}
+                    <form method="POST"
+                          action="{{ url_for('admin.toggle_admin', user_id=user.id) }}"
+                          style="display:inline">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-ghost btn-xs">
+                            {{ 'Demote' if user.is_admin else 'Make Admin' }}
+                        </button>
+                    </form>
+                    <form method="POST"
+                          action="{{ url_for('admin.delete_user', user_id=user.id) }}"
+                          style="display:inline"
+                          onsubmit="return confirm('Delete user {{ user.username }}?')">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-ghost btn-xs btn-danger">Delete</button>
+                    </form>
+                    {% else %}
+                    <span class="muted">You</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

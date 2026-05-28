@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}PokéScan{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- ── Navigation ─────────────────────────────────────────────────── -->
+<nav class="navbar">
+    <a class="nav-brand" href="{{ url_for('scanner.home') }}">
+        <span class="brand-icon">◉</span>
+        <span>PokéScan</span>
+    </a>
+
+    {% if current_user.is_authenticated %}
+    <div class="nav-links">
+        <a href="{{ url_for('scanner.home') }}"
+           class="nav-link {% if request.blueprint == 'scanner' %}active{% endif %}">
+            Scanner
+        </a>
+        <a href="{{ url_for('collection.library') }}"
+           class="nav-link {% if request.blueprint == 'collection' %}active{% endif %}">
+            Collection
+        </a>
+        <a href="{{ url_for('collection.leaderboard') }}" class="nav-link">Leaderboard</a>
+        {% if current_user.is_admin %}
+        <a href="{{ url_for('admin.dashboard') }}"
+           class="nav-link admin-link {% if request.blueprint == 'admin' %}active{% endif %}">
+            ⚙ Admin
+        </a>
+        {% endif %}
+    </div>
+
+    <div class="nav-user">
+        <span class="nav-username">{{ current_user.username }}</span>
+        <a href="{{ url_for('auth.logout') }}" class="btn btn-ghost btn-sm">Logout</a>
+    </div>
+
+    <!-- Mobile menu toggle -->
+    <button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button>
+    {% endif %}
+</nav>
+
+<!-- Mobile drawer -->
+{% if current_user.is_authenticated %}
+<div class="nav-drawer" id="navDrawer">
+    <a href="{{ url_for('scanner.home') }}"      class="drawer-link">Scanner</a>
+    <a href="{{ url_for('collection.library') }}" class="drawer-link">My Library</a>
+    <a href="{{ url_for('collection.decks') }}"   class="drawer-link">My Decks</a>
+    <a href="{{ url_for('collection.wishlist') }}" class="drawer-link">Wishlist</a>
+    <a href="{{ url_for('collection.leaderboard') }}" class="drawer-link">Leaderboard</a>
+    {% if current_user.is_admin %}
+    <a href="{{ url_for('admin.dashboard') }}"   class="drawer-link">Admin Dashboard</a>
+    {% endif %}
+    <a href="{{ url_for('auth.logout') }}"        class="drawer-link drawer-logout">Logout</a>
+</div>
+{% endif %}
+
+<!-- ── Flash messages ─────────────────────────────────────────────── -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div class="flash-container">
+    {% for category, message in messages %}
+    <div class="flash flash-{{ category }}">
+        <span>{{ message }}</span>
+        <button class="flash-close" onclick="this.parentElement.remove()">✕</button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endwith %}
+
+<!-- ── Main content ───────────────────────────────────────────────── -->
+<main class="main-content">
+    {% block content %}{% endblock %}
+</main>
+
+<!-- ── Footer ────────────────────────────────────────────────────── -->
+<footer class="footer">
+    <p>PokéScan &copy; 2026 &nbsp;·&nbsp; DT Programming Task 3</p>
+</footer>
+
+<script>
+    // Mobile nav toggle
+    const toggle = document.getElementById('navToggle');
+    const drawer = document.getElementById('navDrawer');
+    if (toggle && drawer) {
+        toggle.addEventListener('click', () => {
+            drawer.classList.toggle('open');
+        });
+    }
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

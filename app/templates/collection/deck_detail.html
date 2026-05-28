@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% block title %}{{ deck.name }} — PokéScan{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">{{ deck.name }}</h1>
+            <p class="page-subtitle">
+                {{ deck.total_cards }}/{{ max_deck }} cards &nbsp;·&nbsp;
+                Value: ${{ "%.2f"|format(deck.total_value) }}
+            </p>
+        </div>
+        <a href="{{ url_for('collection.decks') }}" class="btn btn-ghost">← Back</a>
+    </div>
+
+    <!-- Deck progress bar -->
+    <div class="confidence-bar-wrap">
+        <span class="confidence-label">Deck Size</span>
+        <div class="confidence-track">
+            <div class="confidence-fill" id="deckFill"
+                 style="width: {{ [deck.total_cards / max_deck * 100, 100]|min }}%"></div>
+        </div>
+        <span class="confidence-pct" id="deckCount">{{ deck.total_cards }}/{{ max_deck }}</span>
+    </div>
+
+    <div class="deck-layout">
+        <!-- Left: cards in this deck -->
+        <div class="deck-contents">
+            <h2 class="section-title">In This Deck</h2>
+            {% if deck.deck_cards %}
+            <div class="deck-list" id="deckList">
+                {% for dc in deck.deck_cards %}
+                <div class="deck-list-item" id="deck-item-{{ dc.card_id }}">
+                    {% if dc.card.image_url %}
+                    <img src="{{ dc.card.image_url }}" alt="{{ dc.card.name }}" class="deck-list-img">
+                    {% else %}
+                    <div class="deck-list-img-placeholder">◉</div>
+                    {% endif %}
+                    <div class="deck-list-info">
+                        <strong>{{ dc.card.name }}</strong>
+                        <span class="deck-list-meta">{{ dc.card.set_name }}</span>
+                    </div>
+                    <div class="deck-list-qty">
+                        <button class="qty-btn" onclick="changeQty({{ dc.card_id }}, -1)">−</button>
+                        <span class="qty-val" id="qty-{{ dc.card_id }}">{{ dc.quantity }}</span>
+                        <button class="qty-btn" onclick="changeQty({{ dc.card_id }}, 1)">+</button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state-sm">
+                <p>No cards added yet. Pick from your collection →</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Right: available cards to add -->
+        <div class="available-cards">
+            <h2 class="section-title">Add from Collection</h2>
+            {% if available_cards %}
+            <div class="available-list">
+                {% for card in available_cards %}
+                <div class="available-item">
+                    <span class="available-name">{{ card.name }}</span>
+                    <span class="available-set">{{ card.set_name }}</span>
+                    <button class="btn btn-primary btn-xs"
+                            onclick="addCard({{ card.id }}, '{{ card.name }}')">+</button>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="empty-small">Scan more cards to add to this deck.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Toast notification -->
+    <div class="toast" id="toast"></div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const DECK_ID  = {{ deck.id }};
+const MAX_DECK = {{ max_deck }};
+
+function showToast(msg, ok=true) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast ' + (ok ? 'toast-ok' : 'toast-err') + ' show';
+    setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function updateDeckCount(total) {
+    document.getElementById('deckCount').textContent = `${total}/${MAX_DECK}`;
+    document.getElementById('deckFill').style.width = `${Math.min(total/MAX_DECK*100,100)}%`;
+}
+
+async function addCard(cardId, cardName) {
+    const res  = await fetch(`/collection/decks/${DECK_ID}/add`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({card_id: cardId})
+    });
+    const data = await res.json();
+    showToast(data.message, data.success);
+    if (data.success) {
+        updateDeckCount(data.total_cards);
+        // Update quantity display if card already shown
+        const qtyEl = document.getElementById(`qty-${cardId}`);
+        if (qtyEl) {
+            qtyEl.textContent = parseInt(qtyEl.textContent) + 1;
+        } else {
+            location.reload(); // New card — refresh to show in list
+        }
+    }
+}
+
+async function changeQty(cardId, delta) {
+    const endpoint = delta > 0 ? 'add' : 'remove';
+    const res  = await fetch(`/collection/decks/${DECK_ID}/${endpoint}`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({card_id: cardId})
+    });
+    const data = await res.json();
+    showToast(data.message || (delta > 0 ? 'Added' : 'Removed'), data.success);
+    if (data.success) {
+        updateDeckCount(data.total_cards);
+        const qtyEl = document.getElementById(`qty-${cardId}`);
+        if (qtyEl) {
+            const newQty = parseInt(qtyEl.textContent) + delta;
+            if (newQty <= 0) {
+                document.getElementById(`deck-item-${cardId}`)?.remove();
+            } else {
+                qtyEl.textContent = newQty;
+            }
+        }
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}My Decks — PokéScan{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">My Decks</h1>
+            <p class="page-subtitle">Build and manage your battle decks</p>
+        </div>
+        <a href="{{ url_for('collection.new_deck') }}" class="btn btn-primary">+ New Deck</a>
+    </div>
+
+    <div class="sub-nav">
+        <a href="{{ url_for('collection.library') }}"     class="sub-link">Library</a>
+        <a href="{{ url_for('collection.decks') }}"       class="sub-link active">Decks</a>
+        <a href="{{ url_for('collection.wishlist') }}"    class="sub-link">Wishlist</a>
+        <a href="{{ url_for('collection.leaderboard') }}" class="sub-link">Leaderboard</a>
+    </div>
+
+    {% if decks %}
+    <div class="deck-grid">
+        {% for deck in decks %}
+        <div class="deck-card">
+            <div class="deck-card-header">
+                <h3>{{ deck.name }}</h3>
+                <span class="deck-size">{{ deck.total_cards }}/60</span>
+            </div>
+            {% if deck.description %}
+            <p class="deck-desc">{{ deck.description }}</p>
+            {% endif %}
+            <div class="deck-meta">
+                <span>Value: <strong>${{ "%.2f"|format(deck.total_value) }}</strong></span>
+                <span>{{ deck.deck_cards|length }} card types</span>
+            </div>
+
+            <!-- Mini progress bar -->
+            <div class="deck-progress-track">
+                <div class="deck-progress-fill" style="width: {{ [deck.total_cards / 60 * 100, 100]|min }}%"></div>
+            </div>
+
+            <div class="deck-actions">
+                <a href="{{ url_for('collection.deck_detail', deck_id=deck.id) }}" class="btn btn-primary btn-sm">View Deck</a>
+                <form method="POST" action="{{ url_for('collection.delete_deck', deck_id=deck.id) }}"
+                      onsubmit="return confirm('Delete {{ deck.name }}?')">
+                    <button type="submit" class="btn btn-ghost btn-sm btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <p class="empty-icon">🃏</p>
+        <h2>No decks yet</h2>
+        <p>Create your first deck to organise your collection.</p>
+        <a href="{{ url_for('collection.new_deck') }}" class="btn btn-primary">Create Deck</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

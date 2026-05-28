@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}New Deck — PokéScan{% endblock %}
+
+{% block content %}
+<div class="page-container page-narrow">
+    <div class="page-header">
+        <h1 class="page-title">Create New Deck</h1>
+    </div>
+
+    <div class="form-card">
+        <form method="POST" action="{{ url_for('collection.new_deck') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="form-group">
+                <label class="form-label" for="name">Deck Name *</label>
+                <input type="text" id="name" name="name" class="form-input"
+                       placeholder="e.g. Fire Deck" required maxlength="100">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="description">Description</label>
+                <textarea id="description" name="description" class="form-input form-textarea"
+                          placeholder="Optional strategy notes…" rows="3"></textarea>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Create Deck</button>
+                <a href="{{ url_for('collection.decks') }}" class="btn btn-ghost">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

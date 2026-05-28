@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard — PokéScan{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">⚙ Admin Dashboard</h1>
+            <p class="page-subtitle">System overview and management</p>
+        </div>
+    </div>
+
+    <!-- Admin nav -->
+    <div class="sub-nav">
+        <a href="{{ url_for('admin.dashboard') }}"    class="sub-link active">Overview</a>
+        <a href="{{ url_for('admin.manage_cards') }}" class="sub-link">Cards</a>
+        <a href="{{ url_for('admin.manage_users') }}" class="sub-link">Users</a>
+    </div>
+
+    <!-- Stat cards -->
+    <div class="admin-stats">
+        <div class="admin-stat">
+            <span class="admin-stat-val">{{ total_users }}</span>
+            <span class="admin-stat-lbl">Registered Users</span>
+        </div>
+        <div class="admin-stat">
+            <span class="admin-stat-val">{{ total_cards }}</span>
+            <span class="admin-stat-lbl">Cards in Catalogue</span>
+        </div>
+        <div class="admin-stat">
+            <span class="admin-stat-val">{{ total_scans }}</span>
+            <span class="admin-stat-lbl">Total Scans</span>
+        </div>
+        <div class="admin-stat">
+            <span class="admin-stat-val">{{ total_decks }}</span>
+            <span class="admin-stat-lbl">Decks Created</span>
+        </div>
+    </div>
+
+    <!-- Scan activity chart (last 7 days) -->
+    <div class="chart-section">
+        <h2 class="section-title">Scans — Last 7 Days</h2>
+        <div class="bar-chart">
+            {% set max_count = scan_history|map(attribute='count')|max %}
+            {% for day in scan_history %}
+            <div class="bar-col">
+                <div class="bar-wrap">
+                    <div class="bar-fill"
+                         style="height: {{ (day.count / [max_count, 1]|max * 100)|int }}%"
+                         title="{{ day.count }} scans"></div>
+                </div>
+                <span class="bar-label">{{ day.date }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="admin-grid">
+        <!-- Most popular cards -->
+        <div class="admin-panel">
+            <h2 class="section-title">Most Scanned Cards</h2>
+            {% if popular_cards %}
+            <table class="admin-table">
+                <thead><tr><th>Card</th><th>Scans</th></tr></thead>
+                <tbody>
+                {% for card, count in popular_cards %}
+                <tr>
+                    <td>{{ card.name }}</td>
+                    <td><strong>{{ count }}</strong></td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="empty-small">No scans yet.</p>
+            {% endif %}
+        </div>
+
+        <!-- Recent activity -->
+        <div class="admin-panel">
+            <h2 class="section-title">Recent Scans</h2>
+            {% if recent_scans %}
+            <table class="admin-table">
+                <thead><tr><th>User</th><th>Card</th><th>Conf.</th><th>When</th></tr></thead>
+                <tbody>
+                {% for scan in recent_scans %}
+                <tr>
+                    <td>{{ scan.user.username }}</td>
+                    <td>{{ scan.card.name }}</td>
+                    <td>{{ (scan.confidence * 100)|int }}%</td>
+                    <td>{{ scan.scanned_at.strftime('%d %b %H:%M') }}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="empty-small">No scans yet.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Quick actions -->
+    <div class="admin-actions">
+        <a href="{{ url_for('admin.add_card') }}"     class="btn btn-primary">+ Add Card</a>
+        <a href="{{ url_for('admin.manage_cards') }}" class="btn btn-ghost">Manage Cards</a>
+        <a href="{{ url_for('admin.manage_users') }}" class="btn btn-ghost">Manage Users</a>
+    </div>
+</div>
+{% endblock %}

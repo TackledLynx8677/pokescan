@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Wishlist — PokéScan{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Wishlist</h1>
+            <p class="page-subtitle">Cards you're hunting for — they'll auto-clear when you scan them!</p>
+        </div>
+    </div>
+
+    <div class="sub-nav">
+        <a href="{{ url_for('collection.library') }}"     class="sub-link">Library</a>
+        <a href="{{ url_for('collection.decks') }}"       class="sub-link">Decks</a>
+        <a href="{{ url_for('collection.wishlist') }}"    class="sub-link active">Wishlist</a>
+        <a href="{{ url_for('collection.leaderboard') }}" class="sub-link">Leaderboard</a>
+    </div>
+
+    <div class="wishlist-layout">
+        <!-- Current wishlist -->
+        <div class="wishlist-current">
+            <h2 class="section-title">Wanted Cards ({{ items|length }})</h2>
+            {% if items %}
+            <div class="wishlist-list">
+                {% for item in items %}
+                <div class="wishlist-item">
+                    {% if item.card.image_url %}
+                    <img src="{{ item.card.image_url }}" alt="{{ item.card.name }}" class="wish-img">
+                    {% else %}
+                    <div class="wish-img wish-img-placeholder">◉</div>
+                    {% endif %}
+                    <div class="wish-info">
+                        <strong>{{ item.card.name }}</strong>
+                        <span>{{ item.card.set_name }}</span>
+                        {% if item.card.rarity %}<span class="badge badge-rarity">{{ item.card.rarity }}</span>{% endif %}
+                    </div>
+                    <span class="wish-value">${{ "%.2f"|format(item.card.market_value or 0) }}</span>
+                    <form method="POST" action="{{ url_for('collection.remove_from_wishlist', item_id=item.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-ghost btn-xs btn-danger" title="Remove">✕</button>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state-sm">
+                <p>Your wishlist is empty — add cards you're looking for!</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Add to wishlist -->
+        {% if available_cards %}
+        <div class="wishlist-add">
+            <h2 class="section-title">Add to Wishlist</h2>
+            <form method="POST" action="{{ url_for('collection.add_to_wishlist') }}" class="wishlist-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <select name="card_id" class="form-input">
+                    {% for card in available_cards %}
+                    <option value="{{ card.id }}">{{ card.name }} ({{ card.set_name }})</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-primary">Add ★</button>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

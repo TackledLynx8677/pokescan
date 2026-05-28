@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if card else 'Add' }} Card — PokéScan{% endblock %}
+
+{% block content %}
+<div class="page-container page-narrow">
+    <div class="page-header">
+        <h1 class="page-title">{{ 'Edit' if card else 'Add New' }} Card</h1>
+    </div>
+
+    <div class="sub-nav">
+        <a href="{{ url_for('admin.dashboard') }}"    class="sub-link">Overview</a>
+        <a href="{{ url_for('admin.manage_cards') }}" class="sub-link active">Cards</a>
+        <a href="{{ url_for('admin.manage_users') }}" class="sub-link">Users</a>
+    </div>
+
+    <div class="form-card">
+        <form method="POST" action="{{ url_for('admin.edit_card', card_id=card.id) if card else url_for('admin.add_card') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Card Name *</label>
+                    <input type="text" name="name" class="form-input" required
+                           value="{{ card.name if card else '' }}" placeholder="e.g. Charizard">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Roboflow Class Label *
+                        <span class="form-hint">Must exactly match your Roboflow label</span>
+                    </label>
+                    <input type="text" name="roboflow_class" class="form-input" required
+                           value="{{ card.roboflow_class if card else '' }}"
+                           placeholder="e.g. charizard_base_set">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Set Name *</label>
+                    <input type="text" name="set_name" class="form-input" required
+                           value="{{ card.set_name if card else '' }}" placeholder="e.g. Base Set">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Set Number</label>
+                    <input type="text" name="set_number" class="form-input"
+                           value="{{ card.set_number if card else '' }}" placeholder="e.g. 4/102">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Card Type</label>
+                    <select name="card_type" class="form-input">
+                        {% for t in ['Pokemon', 'Trainer', 'Energy'] %}
+                        <option value="{{ t }}" {{ 'selected' if card and card.card_type == t }}>{{ t }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Rarity</label>
+                    <select name="rarity" class="form-input">
+                        <option value="">— Select —</option>
+                        {% for r in ['Common','Uncommon','Rare','Rare Holo','Rare Ultra','Secret Rare'] %}
+                        <option value="{{ r }}" {{ 'selected' if card and card.rarity == r }}>{{ r }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Pokémon Type</label>
+                    <select name="pokemon_type" class="form-input">
+                        <option value="">— None —</option>
+                        {% for pt in ['Fire','Water','Grass','Electric','Psychic','Fighting','Darkness','Metal','Dragon','Fairy','Colorless'] %}
+                        <option value="{{ pt }}" {{ 'selected' if card and card.pokemon_type == pt }}>{{ pt }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">HP</label>
+                    <input type="number" name="hp" class="form-input" min="0" max="340"
+                           value="{{ card.hp if card else '' }}" placeholder="e.g. 120">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Card Image URL</label>
+                <input type="url" name="image_url" class="form-input"
+                       value="{{ card.image_url if card else '' }}"
+                       placeholder="https://... (paste from Bulbapedia or TCGPlayer)">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Market Value (AUD)</label>
+                <input type="number" name="market_value" class="form-input"
+                       step="0.01" min="0"
+                       value="{{ card.market_value if card else '0.00' }}" placeholder="0.00">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Description / Flavour Text</label>
+                <textarea name="description" class="form-input form-textarea" rows="3"
+                          placeholder="Optional Pokédex entry or card text…">{{ card.description if card else '' }}</textarea>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">{{ 'Save Changes' if card else 'Add Card' }}</button>
+                <a href="{{ url_for('admin.manage_cards') }}" class="btn btn-ghost">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

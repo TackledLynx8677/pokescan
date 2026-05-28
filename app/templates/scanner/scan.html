@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}Scanner — PokéScan{% endblock %}
+
+{% block content %}
+<div class="scanner-page">
+
+    <!-- ── Stats strip ─────────────────────────────────────────── -->
+    <div class="scanner-stats">
+        <div class="stat-chip">
+            <span class="stat-val">{{ user_scans }}</span>
+            <span class="stat-lbl">Cards Found</span>
+        </div>
+        <div class="stat-chip">
+            <span class="stat-val">{{ total_cards }}</span>
+            <span class="stat-lbl">In Catalogue</span>
+        </div>
+        <div class="stat-chip">
+            <span class="stat-val">${{ "%.2f"|format(current_user.collection_value) }}</span>
+            <span class="stat-lbl">Collection Value</span>
+        </div>
+    </div>
+
+    <!-- ── Camera section ──────────────────────────────────────── -->
+    <div class="camera-container">
+        <div class="camera-frame" id="cameraFrame">
+            <video id="videoFeed" autoplay playsinline muted></video>
+            <canvas id="overlayCanvas"></canvas>
+
+            <!-- Scanning indicator -->
+            <div class="scan-indicator" id="scanIndicator">
+                <div class="scan-line"></div>
+            </div>
+
+            <!-- Status badge -->
+            <div class="scan-badge" id="scanBadge">
+                <span class="badge-dot" id="badgeDot"></span>
+                <span id="badgeText">Initialising camera…</span>
+            </div>
+        </div>
+
+        <!-- Confidence bar -->
+        <div class="confidence-bar-wrap" id="confidenceWrap" style="display:none;">
+            <span class="confidence-label">Confidence</span>
+            <div class="confidence-track">
+                <div class="confidence-fill" id="confidenceFill"></div>
+            </div>
+            <span class="confidence-pct" id="confidencePct">0%</span>
+        </div>
+
+        <!-- Controls -->
+        <div class="camera-controls">
+            <button class="btn btn-primary" id="btnScan">⬤ Scan Card</button>
+            <button class="btn btn-ghost"   id="btnUpload">↑ Upload Image</button>
+            <input type="file" id="fileInput" accept="image/*" style="display:none;">
+        </div>
+    </div>
+
+    <!-- ── Result panel (hidden until a scan succeeds) ─────────── -->
+    <div class="result-panel" id="resultPanel" style="display:none;">
+        <h2 class="result-title">Card Detected!</h2>
+        <div id="resultCards" class="result-cards-grid"></div>
+        <button class="btn btn-ghost btn-sm" id="btnDismiss">✕ Dismiss</button>
+    </div>
+
+    <!-- ── Error panel ─────────────────────────────────────────── -->
+    <div class="error-panel" id="errorPanel" style="display:none;">
+        <p class="error-icon">⚠</p>
+        <p id="errorMessage"></p>
+        <p class="error-tip" id="errorTip"></p>
+    </div>
+
+    <!-- ── Quick links ─────────────────────────────────────────── -->
+    <div class="quick-links">
+        <a href="{{ url_for('collection.library') }}"  class="quick-card">
+            <span class="qc-icon">📚</span>
+            <span>My Library</span>
+        </a>
+        <a href="{{ url_for('collection.decks') }}"    class="quick-card">
+            <span class="qc-icon">🃏</span>
+            <span>My Decks</span>
+        </a>
+        <a href="{{ url_for('collection.wishlist') }}" class="quick-card">
+            <span class="qc-icon">⭐</span>
+            <span>Wishlist</span>
+        </a>
+        <a href="{{ url_for('collection.leaderboard') }}" class="quick-card">
+            <span class="qc-icon">🏆</span>
+            <span>Rankings</span>
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/scanner.js') }}"></script>
+{% endblock %}

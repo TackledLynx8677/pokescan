@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}My Library — PokéScan{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">My Library</h1>
+            <p class="page-subtitle">{{ cards|length }} unique cards &nbsp;·&nbsp; Total value: <strong>${{ "%.2f"|format(total_value) }} AUD</strong></p>
+        </div>
+        <a href="{{ url_for('scanner.home') }}" class="btn btn-primary">+ Scan More</a>
+    </div>
+
+    <!-- Sub-nav -->
+    <div class="sub-nav">
+        <a href="{{ url_for('collection.library') }}"   class="sub-link active">Library</a>
+        <a href="{{ url_for('collection.decks') }}"     class="sub-link">Decks</a>
+        <a href="{{ url_for('collection.wishlist') }}"  class="sub-link">Wishlist</a>
+        <a href="{{ url_for('collection.leaderboard') }}" class="sub-link">Leaderboard</a>
+    </div>
+
+    {% if cards %}
+    <div class="card-grid">
+        {% for item in cards %}
+        {% set card = item.card %}
+        <div class="poke-card {{ card.rarity_colour }}">
+            {% if card.image_url %}
+            <div class="poke-card-img">
+                <img src="{{ card.image_url }}" alt="{{ card.name }}" loading="lazy">
+            </div>
+            {% else %}
+            <div class="poke-card-img poke-card-img-placeholder">
+                <span>◉</span>
+            </div>
+            {% endif %}
+
+            <div class="poke-card-body">
+                <div class="poke-card-header">
+                    <h3 class="poke-card-name">{{ card.name }}</h3>
+                    {% if card.hp %}<span class="poke-card-hp">HP {{ card.hp }}</span>{% endif %}
+                </div>
+                <div class="poke-card-meta">
+                    <span class="badge badge-type">{{ card.pokemon_type or card.card_type }}</span>
+                    {% if card.rarity %}
+                    <span class="badge badge-rarity">{{ card.rarity }}</span>
+                    {% endif %}
+                </div>
+                <p class="poke-card-set">{{ card.set_name }}{% if card.set_number %} · {{ card.set_number }}{% endif %}</p>
+                {% if card.description %}
+                <p class="poke-card-desc">{{ card.description|truncate(80) }}</p>
+                {% endif %}
+            </div>
+
+            <div class="poke-card-footer">
+                <span class="card-value">${{ "%.2f"|format(card.market_value or 0) }}</span>
+                <span class="card-scans">Scanned {{ item.scan_count }}×</span>
+            </div>
+
+            <div class="poke-card-actions">
+                <a href="{{ url_for('collection.decks') }}" class="btn btn-ghost btn-xs">Add to Deck</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <p class="empty-icon">📭</p>
+        <h2>No cards yet</h2>
+        <p>Head to the scanner and find your first card!</p>
+        <a href="{{ url_for('scanner.home') }}" class="btn btn-primary">Open Scanner</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

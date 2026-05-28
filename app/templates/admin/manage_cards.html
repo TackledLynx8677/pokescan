@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Manage Cards — PokéScan{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <h1 class="page-title">Card Catalogue</h1>
+        <a href="{{ url_for('admin.add_card') }}" class="btn btn-primary">+ Add Card</a>
+    </div>
+
+    <div class="sub-nav">
+        <a href="{{ url_for('admin.dashboard') }}"    class="sub-link">Overview</a>
+        <a href="{{ url_for('admin.manage_cards') }}" class="sub-link active">Cards</a>
+        <a href="{{ url_for('admin.manage_users') }}" class="sub-link">Users</a>
+    </div>
+
+    {% if cards %}
+    <div class="table-wrap">
+        <table class="admin-table admin-table-full">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Set</th>
+                    <th>Rarity</th>
+                    <th>Type</th>
+                    <th>Roboflow Class</th>
+                    <th>Value</th>
+                    <th>Scans</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for card in cards %}
+                <tr>
+                    <td>
+                        {% if card.image_url %}
+                        <img src="{{ card.image_url }}" alt="{{ card.name }}" class="table-thumb">
+                        {% endif %}
+                        <strong>{{ card.name }}</strong>
+                    </td>
+                    <td>{{ card.set_name }}</td>
+                    <td><span class="badge badge-rarity">{{ card.rarity or '—' }}</span></td>
+                    <td>{{ card.pokemon_type or card.card_type }}</td>
+                    <td><code>{{ card.roboflow_class }}</code></td>
+                    <td>${{ "%.2f"|format(card.market_value or 0) }}</td>
+                    <td>{{ card.scan_count }}</td>
+                    <td class="table-actions">
+                        <a href="{{ url_for('admin.edit_card', card_id=card.id) }}"
+                           class="btn btn-ghost btn-xs">Edit</a>
+                        <form method="POST"
+                              action="{{ url_for('admin.delete_card', card_id=card.id) }}"
+                              style="display:inline"
+                              onsubmit="return confirm('Delete {{ card.name }}? This will remove all scan records.')">
+                            <button type="submit" class="btn btn-ghost btn-xs btn-danger">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <p class="empty-icon">📭</p>
+        <h2>No cards in catalogue</h2>
+        <p>Add your first card to get started.</p>
+        <a href="{{ url_for('admin.add_card') }}" class="btn btn-primary">Add Card</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
