@@ -88,7 +88,7 @@
                     <td>{{ scan.user.username }}</td>
                     <td>{{ scan.card.name }}</td>
                     <td>{{ (scan.confidence * 100)|int }}%</td>
-                    <td>{{ scan.scanned_at.strftime('%d %b %H:%M') }}</td>
+                    <td>{{ to_aest(scan.scanned_at).strftime('%d %b %H:%M') }}</td>
                 </tr>
                 {% endfor %}
                 </tbody>

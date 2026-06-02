@@ -7,8 +7,16 @@ from .. import db
 from datetime import datetime, timedelta
 
 
-# ── Admin guard decorator ─────────────────────────────────────────────────────
 
+# ────── UTC to AEST helper function ──────
+def to_aest(dt):
+    """Convert UTC datetime to AEST (UTC+10)."""
+    if dt is None:
+        return dt
+    return dt + timedelta(hours=10)
+
+
+# ────── Admin guard decorator ──────
 def admin_required(f):
     """Decorator that restricts a route to admin users only."""
     @wraps(f)
@@ -20,8 +28,7 @@ def admin_required(f):
     return login_required(decorated)
 
 
-# ── Dashboard ─────────────────────────────────────────────────────────────────
-
+# ────── Dashboard ────── 
 @admin_bp.route('/')
 @admin_required
 def dashboard():
@@ -59,10 +66,11 @@ def dashboard():
                            total_decks=total_decks,
                            popular_cards=popular_cards,
                            recent_scans=recent_scans,
-                           scan_history=scan_history)
+                           scan_history=scan_history,
+                           to_aest=to_aest)
 
 
-# ── Card Management ───────────────────────────────────────────────────────────
+# ── Card Management ──
 
 @admin_bp.route('/cards')
 @admin_required
@@ -149,7 +157,7 @@ def delete_card(card_id):
     return redirect(url_for('admin.manage_cards'))
 
 
-# ── User Management ───────────────────────────────────────────────────────────
+# ── User Management ─────
 
 @admin_bp.route('/users')
 @admin_required
