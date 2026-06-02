@@ -4,6 +4,8 @@ from . import collection_bp
 from ..models import Card, Scan, Deck, DeckCard, WishlistItem, User
 from .. import db
 from ..config import Config
+from .. import csrf
+
 
 
 # ── Library ───────────────────────────────────────────────────────────────────
@@ -94,7 +96,7 @@ def deck_detail(deck_id):
                            max_deck=Config.MAX_DECK_SIZE,
                            max_copies=Config.MAX_COPIES_PER_CARD)
 
-
+@csrf.exempt
 @collection_bp.route('/decks/<int:deck_id>/add', methods=['POST'])
 @login_required
 def add_to_deck(deck_id):
@@ -129,6 +131,7 @@ def add_to_deck(deck_id):
     })
 
 
+@csrf.exempt
 @collection_bp.route('/decks/<int:deck_id>/remove', methods=['POST'])
 @login_required
 def remove_from_deck(deck_id):

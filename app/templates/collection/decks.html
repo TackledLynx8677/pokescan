@@ -12,9 +12,9 @@
     </div>
 
     <div class="sub-nav">
-        <a href="{{ url_for('collection.library') }}"     class="sub-link">Library</a>
-        <a href="{{ url_for('collection.decks') }}"       class="sub-link active">Decks</a>
-        <a href="{{ url_for('collection.wishlist') }}"    class="sub-link">Wishlist</a>
+        <a href="{{ url_for('collection.library') }}"  class="sub-link">Library</a>
+        <a href="{{ url_for('collection.decks') }}"    class="sub-link active">Decks</a>
+        <a href="{{ url_for('collection.wishlist') }}" class="sub-link">Wishlist</a>
         <a href="{{ url_for('collection.leaderboard') }}" class="sub-link">Leaderboard</a>
     </div>
 
@@ -43,6 +43,7 @@
                 <a href="{{ url_for('collection.deck_detail', deck_id=deck.id) }}" class="btn btn-primary btn-sm">View Deck</a>
                 <form method="POST" action="{{ url_for('collection.delete_deck', deck_id=deck.id) }}"
                       onsubmit="return confirm('Delete {{ deck.name }}?')">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="btn btn-ghost btn-sm btn-danger">Delete</button>
                 </form>
             </div>
