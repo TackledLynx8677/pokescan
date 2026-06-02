@@ -1,10 +1,10 @@
-/* ═══════════════════════════════════════════════════════════════════
+/* 
    PokéScan — Global Stylesheet
    Font: Rajdhani (headings) + Nunito (body)
    Theme: Dark with electric yellow accent (#FFD700) + red (#E3350D)
-═══════════════════════════════════════════════════════════════════ */
+ */
 
-/* ── CSS Variables ──────────────────────────────────────────────── */
+/* ── CSS Variables  */
 :root {
     --bg:          #0e0e14;
     --bg-card:     #16161f;
@@ -33,12 +33,79 @@
     --shadow-sm:   0 2px 8px rgba(0,0,0,0.4);
     --transition:  0.2s ease;
 
-    /* ── Light Mode Variables ──────────────────────────────────────────────── */
     
 
 }
 
-/* ── Reset & Base ───────────────────────────────────────────────── */
+
+[data-theme="light"] {
+    --bg:          #f0f2f5;
+    --bg-card:     #ffffff;
+    --bg-card2:    #f8f9fb;
+    --bg-input:    #f0f2f5;
+    --border:      #dde1e8;
+    --border-lit:  #c5cad4;
+ 
+    --yellow:      #d4a800;
+    --yellow-dim:  #b8920a;
+    --red:         #c0290a;
+    --red-dim:     #9e2008;
+    --blue:        #1a7abf;
+    --green:       #2e8b3e;
+    --purple:      #7b3fa0;
+    --orange:      #c97000;
+ 
+    --text:        #1a1a2e;
+    --text-muted:  #4a5068;
+    --text-dim:    #8a90a8;
+}
+ 
+/* Fix navbar background in light mode */
+[data-theme="light"] .navbar {
+    background: rgba(240, 242, 245, 0.95);
+    border-bottom: 1px solid var(--border);
+}
+ 
+/* Fix camera frame in light mode */
+[data-theme="light"] .camera-frame {
+    border-color: var(--border);
+}
+ 
+/* Fix code elements in light mode */
+[data-theme="light"] code {
+    background: var(--bg-card2);
+    color: var(--blue);
+}
+ 
+/* Fix admin table hover in light mode */
+[data-theme="light"] .admin-table tr:hover td {
+    background: var(--bg-card2);
+}
+ 
+/* Fix flash messages in light mode */
+[data-theme="light"] .flash-success { background: #e8f5e9; }
+[data-theme="light"] .flash-danger  { background: #fdecea; }
+[data-theme="light"] .flash-warning { background: #fff8e1; }
+[data-theme="light"] .flash-info    { background: #e3f2fd; }
+ 
+/* Theme toggle button */
+.theme-toggle {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 0.3rem 0.6rem;
+    transition: var(--transition);
+    line-height: 1;
+}
+.theme-toggle:hover {
+    border-color: var(--yellow);
+    color: var(--yellow);
+}
+
+/*  Reset & Base  */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html { scroll-behavior: smooth; }
@@ -73,7 +140,7 @@ code {
     color: var(--blue);
 }
 
-/* ── Navbar ─────────────────────────────────────────────────────── */
+/* ── Navbar  */
 .navbar {
     position: sticky;
     top: 0;
@@ -183,7 +250,7 @@ code {
 .drawer-link:hover { background: var(--bg-card2); color: var(--yellow); }
 .drawer-logout { color: var(--red); }
 
-/* ── Flash messages ─────────────────────────────────────────────── */
+/* Flash messages  */
 .flash-container {
     position: fixed;
     top: 70px;
