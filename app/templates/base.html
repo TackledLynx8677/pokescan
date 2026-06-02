@@ -26,10 +26,13 @@
             Scanner
         </a>
         <a href="{{ url_for('collection.library') }}"
-           class="nav-link {% if request.blueprint == 'collection' %}active{% endif %}">
-            Collection
+            class="nav-link {% if request.blueprint == 'collection' and request.endpoint != 'collection.leaderboard' %}active{% endif %}">
+                Collection
         </a>
-        <a href="{{ url_for('collection.leaderboard') }}" class="nav-link">Leaderboard</a>
+        <a href="{{ url_for('collection.leaderboard') }}"
+            class="nav-link {% if request.endpoint == 'collection.leaderboard' %}active{% endif %}">
+                Leaderboard
+        </a>
         {% if current_user.is_admin %}
         <a href="{{ url_for('admin.dashboard') }}"
            class="nav-link admin-link {% if request.blueprint == 'admin' %}active{% endif %}">
