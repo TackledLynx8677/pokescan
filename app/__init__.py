@@ -38,7 +38,8 @@ def create_app():
     from .scanner.routes   import scanner_bp
     from .collection.routes import collection_bp
     from .admin.routes     import admin_bp
-
+    from .profile.routes import profile_bp
+    app.register_blueprint(profile_bp, url_prefix='/profile')
     app.register_blueprint(auth_bp,       url_prefix='/auth')
     app.register_blueprint(scanner_bp,    url_prefix='/scanner')
     app.register_blueprint(collection_bp, url_prefix='/collection')

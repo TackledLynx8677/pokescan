@@ -38,6 +38,9 @@
            class="nav-link admin-link {% if request.blueprint == 'admin' %}active{% endif %}">
             ⚙ Admin
         </a>
+        <a href="{{ url_for('profile.my_profile') }}" class="nav-username">
+            {{ current_user.username }}
+        </a>
         {% endif %}
     </div>
 
