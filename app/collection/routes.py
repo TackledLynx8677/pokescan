@@ -5,6 +5,8 @@ from ..models import Card, Scan, Deck, DeckCard, WishlistItem, User
 from .. import db
 from ..config import Config
 from .. import csrf
+from datetime import timedelta
+
 
 
 
@@ -224,3 +226,15 @@ def remove_from_wishlist(item_id):
     db.session.commit()
     flash('Removed from wishlist.', 'info')
     return redirect(url_for('collection.wishlist'))
+
+
+@collection_bp.route('/history')
+@login_required
+def scan_history():
+    """Full scan history with timestamps for the current user."""
+    from datetime import timedelta
+    scans = Scan.query.filter_by(user_id=current_user.id)\
+                      .order_by(Scan.scanned_at.desc()).all()
+    return render_template('collection/scan_history.html',
+                           scans=scans,
+                           timedelta=timedelta)

@@ -16,12 +16,14 @@
             <span class="badge badge-admin">Admin</span>
             {% endif %}
         </div>
-        {% if is_own_profile %}
         <div class="profile-actions">
+            {% if is_own_profile %}
             <a href="{{ url_for('collection.library') }}" class="btn btn-primary">My Library</a>
             <a href="{{ url_for('scanner.home') }}" class="btn btn-ghost">Open Scanner</a>
+            {% else %}
+            <a href="{{ url_for('trade.offer', username=profile_user.username) }}" class="btn btn-primary">⇄ Offer Trade</a>
+            {% endif %}
         </div>
-        {% endif %}
     </div>
 
     <!-- ── Key stats row ────-->

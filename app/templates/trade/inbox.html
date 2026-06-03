@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+{% block title %}Trade Inbox — PokéScan{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Trade Inbox</h1>
+            <p class="page-subtitle">
+                {% if pending_count > 0 %}
+                <span class="pending-badge">{{ pending_count }} pending</span> trade offer{{ 's' if pending_count != 1 }}
+                {% else %}
+                No pending trade offers
+                {% endif %}
+            </p>
+        </div>
+        <a href="{{ url_for('collection.leaderboard') }}" class="btn btn-ghost">Find Traders</a>
+    </div>
+
+    <!-- ── Received trades ────────────────────────────────────────── -->
+    <h2 class="section-title" style="margin-bottom:0.75rem;">Received Offers</h2>
+    {% if received %}
+    <div class="trade-list">
+        {% for trade in received %}
+        <div class="trade-card status-{{ trade.status }}">
+            <div class="trade-card-header">
+                <div class="trade-users">
+                    <a href="{{ url_for('profile.public_profile', username=trade.sender.username) }}"
+                       class="trade-user-link">
+                        <div class="trade-avatar">{{ trade.sender.username[0].upper() }}</div>
+                        <strong>{{ trade.sender.username }}</strong>
+                    </a>
+                    <span class="trade-arrow">→ You</span>
+                </div>
+                <span class="trade-status-badge status-{{ trade.status }}">{{ trade.status }}</span>
+            </div>
+
+            <!-- Cards offered -->
+            {% if trade.offered_cards %}
+            <div class="trade-cards-row">
+                <span class="trade-row-label">Offering:</span>
+                {% for card in trade.offered_cards %}
+                <div class="trade-mini-card">
+                    {% if card.image_url %}
+                    <img src="{{ card.image_url }}" alt="{{ card.name }}">
+                    {% else %}
+                    <div class="trade-mini-placeholder">◉</div>
+                    {% endif %}
+                    <span>{{ card.name }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Cards requested -->
+            {% if trade.requested_cards %}
+            <div class="trade-cards-row">
+                <span class="trade-row-label">Wants:</span>
+                {% for card in trade.requested_cards %}
+                <div class="trade-mini-card">
+                    {% if card.image_url %}
+                    <img src="{{ card.image_url }}" alt="{{ card.name }}">
+                    {% else %}
+                    <div class="trade-mini-placeholder">◉</div>
+                    {% endif %}
+                    <span>{{ card.name }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if trade.message %}
+            <p class="trade-message">"{{ trade.message }}"</p>
+            {% endif %}
+
+            <div class="trade-footer">
+                <span class="trade-date">{{ trade.created_at.strftime('%d %b %Y %H:%M') }}</span>
+                {% if trade.status == 'pending' %}
+                <div class="trade-actions">
+                    <form method="POST" action="{{ url_for('trade.accept', trade_id=trade.id) }}" style="display:inline">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-primary btn-sm">✓ Accept</button>
+                    </form>
+                    <form method="POST" action="{{ url_for('trade.decline', trade_id=trade.id) }}" style="display:inline">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-ghost btn-sm btn-danger">✕ Decline</button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state-sm">No trade offers received yet.</div>
+    {% endif %}
+
+    <!-- ── Sent trades ────────────────────────────────────────────── -->
+    <h2 class="section-title" style="margin: 2rem 0 0.75rem;">Sent Offers</h2>
+    {% if sent %}
+    <div class="trade-list">
+        {% for trade in sent %}
+        <div class="trade-card status-{{ trade.status }}">
+            <div class="trade-card-header">
+                <div class="trade-users">
+                    <span>You</span>
+                    <span class="trade-arrow">→</span>
+                    <a href="{{ url_for('profile.public_profile', username=trade.receiver.username) }}"
+                       class="trade-user-link">
+                        <div class="trade-avatar">{{ trade.receiver.username[0].upper() }}</div>
+                        <strong>{{ trade.receiver.username }}</strong>
+                    </a>
+                </div>
+                <span class="trade-status-badge status-{{ trade.status }}">{{ trade.status }}</span>
+            </div>
+
+            {% if trade.offered_cards %}
+            <div class="trade-cards-row">
+                <span class="trade-row-label">Offering:</span>
+                {% for card in trade.offered_cards %}
+                <div class="trade-mini-card">
+                    {% if card.image_url %}<img src="{{ card.image_url }}" alt="{{ card.name }}">
+                    {% else %}<div class="trade-mini-placeholder">◉</div>{% endif %}
+                    <span>{{ card.name }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if trade.requested_cards %}
+            <div class="trade-cards-row">
+                <span class="trade-row-label">Wants:</span>
+                {% for card in trade.requested_cards %}
+                <div class="trade-mini-card">
+                    {% if card.image_url %}<img src="{{ card.image_url }}" alt="{{ card.name }}">
+                    {% else %}<div class="trade-mini-placeholder">◉</div>{% endif %}
+                    <span>{{ card.name }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="trade-footer">
+                <span class="trade-date">{{ trade.created_at.strftime('%d %b %Y %H:%M') }}</span>
+                {% if trade.status == 'pending' %}
+                <form method="POST" action="{{ url_for('trade.cancel', trade_id=trade.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-ghost btn-sm">Cancel</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state-sm">No trades sent yet. Find a trainer on the leaderboard!</div>
+    {% endif %}
+</div>
+{% endblock %}

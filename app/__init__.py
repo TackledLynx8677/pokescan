@@ -39,6 +39,8 @@ def create_app():
     from .collection.routes import collection_bp
     from .admin.routes     import admin_bp
     from .profile.routes import profile_bp
+    from .trade.routes import trade_bp
+    app.register_blueprint(trade_bp, url_prefix='/trade')
     app.register_blueprint(profile_bp, url_prefix='/profile')
     app.register_blueprint(auth_bp,       url_prefix='/auth')
     app.register_blueprint(scanner_bp,    url_prefix='/scanner')

@@ -33,6 +33,7 @@
             class="nav-link {% if request.endpoint == 'collection.leaderboard' %}active{% endif %}">
                 Leaderboard
         </a>
+        <a href="{{ url_for('trade.inbox') }}" class="nav-link">Trades</a>
         {% if current_user.is_admin %}
         <a href="{{ url_for('admin.dashboard') }}"
            class="nav-link admin-link {% if request.blueprint == 'admin' %}active{% endif %}">
@@ -64,9 +65,12 @@
     <a href="{{ url_for('collection.wishlist') }}" class="drawer-link">Wishlist</a>
     <a href="{{ url_for('collection.leaderboard') }}" class="drawer-link">Leaderboard</a>
     {% if current_user.is_admin %}
-    <a href="{{ url_for('admin.dashboard') }}"   class="drawer-link">Admin Dashboard</a>
+    <a href="{{ url_for('admin.dashboard') }}" class="drawer-link">Admin Dashboard</a>
     {% endif %}
-    <a href="{{ url_for('auth.logout') }}"        class="drawer-link drawer-logout">Logout</a>
+    <a href="{{ url_for('trade.inbox') }}"             class="drawer-link">⇄ Trades</a>
+    <a href="{{ url_for('collection.scan_history') }}" class="drawer-link">📋 Scan History</a>
+    <a href="{{ url_for('auth.logout') }}"  class="drawer-link drawer-logout">Logout</a>
+    <a href="{{ url_for('collection.scan_history') }}" class="drawer-link">Scan History</a>
 </div>
 {% endif %}
 

@@ -3,7 +3,7 @@ from flask_login import UserMixin
 from . import db, bcrypt
 
 
-# ── Users ─────────────────────────────────────────────────────────────────────
+# ── Users ────
 
 class User(UserMixin, db.Model):
     """Registered users. Role is either 'user' or 'admin'."""
@@ -43,7 +43,7 @@ class User(UserMixin, db.Model):
         return len({s.card_id for s in self.scans})
 
 
-# ── Cards ─────────────────────────────────────────────────────────────────────
+# ── Cards ────
 
 class Card(db.Model):
     """Pokemon cards stored in the catalogue. Admin manages these."""
@@ -86,7 +86,7 @@ class Card(db.Model):
         return colours.get(self.rarity, 'rarity-common')
 
 
-# ── Scans ─────────────────────────────────────────────────────────────────────
+# ── Scans ──────
 
 class Scan(db.Model):
     """Every time a user successfully scans a card."""
@@ -134,7 +134,7 @@ class DeckCard(db.Model):
     __table_args__ = (db.UniqueConstraint('deck_id', 'card_id'),)
 
 
-# ── Wishlist ──────────────────────────────────────────────────────────────────
+# ── Wishlist ───────
 
 class WishlistItem(db.Model):
     """Cards a user wants but hasn't scanned yet."""
@@ -146,3 +146,47 @@ class WishlistItem(db.Model):
     added_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     __table_args__ = (db.UniqueConstraint('user_id', 'card_id'),)
+
+
+# ── Trades ───────
+
+class Trade(db.Model):
+    """
+    A trade offer between two users.
+    Status: 'pending', 'accepted', 'declined', 'cancelled'
+    """
+    __tablename__ = 'trades'
+ 
+    id          = db.Column(db.Integer, primary_key=True)
+    sender_id   = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    receiver_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    status      = db.Column(db.String(20), nullable=False, default='pending')
+    message     = db.Column(db.Text)
+    created_at  = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at  = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+ 
+    sender   = db.relationship('User', foreign_keys=[sender_id],   backref='sent_trades')
+    receiver = db.relationship('User', foreign_keys=[receiver_id], backref='received_trades')
+    items    = db.relationship('TradeItem', backref='trade', lazy=True, cascade='all, delete-orphan')
+ 
+    @property
+    def offered_cards(self):
+        """Cards the sender is offering."""
+        return [i.card for i in self.items if i.direction == 'offer']
+ 
+    @property
+    def requested_cards(self):
+        """Cards the sender wants in return."""
+        return [i.card for i in self.items if i.direction == 'request']
+ 
+ 
+class TradeItem(db.Model):
+    """A single card in a trade — either being offered or requested."""
+    __tablename__ = 'trade_items'
+ 
+    id        = db.Column(db.Integer, primary_key=True)
+    trade_id  = db.Column(db.Integer, db.ForeignKey('trades.id'),  nullable=False)
+    card_id   = db.Column(db.Integer, db.ForeignKey('cards.id'),   nullable=False)
+    direction = db.Column(db.String(10), nullable=False)  # 'offer' or 'request'
+ 
+    card = db.relationship('Card', backref='trade_items')

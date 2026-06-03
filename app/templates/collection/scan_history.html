@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block title %}Scan History — PokéScan{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Scan History</h1>
+            <p class="page-subtitle">{{ scans|length }} total scans recorded</p>
+        </div>
+        <a href="{{ url_for('scanner.home') }}" class="btn btn-primary">+ Scan More</a>
+    </div>
+
+    <div class="sub-nav">
+        <a href="{{ url_for('collection.library') }}" class="sub-link">Library</a>
+        <a href="{{ url_for('collection.decks') }}" class="sub-link">Decks</a>
+        <a href="{{ url_for('collection.wishlist') }}" class="sub-link">Wishlist</a>
+        <a href="{{ url_for('collection.leaderboard') }}" class="sub-link">Leaderboard</a>
+        <a href="{{ url_for('collection.scan_history') }}" class="sub-link active">Scan History</a>
+    </div>
+
+    <!-- ── Filter bar ──-->
+    <div class="history-filters">
+        <input type="text" id="historySearch" class="form-input"
+               placeholder="🔍 Filter by card name…" style="max-width:280px;">
+        <select id="historySort" class="form-input" style="max-width:180px;">
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+            <option value="confidence">Highest Confidence</option>
+        </select>
+    </div>
+
+    {% if scans %}
+    <div class="history-list" id="historyList">
+        {% for scan in scans %}
+        <div class="history-item" data-name="{{ scan.card.name.lower() }}"
+             data-confidence="{{ scan.confidence }}"
+             data-date="{{ scan.scanned_at.isoformat() }}">
+
+            {% if scan.card.image_url %}
+            <img src="{{ scan.card.image_url }}" alt="{{ scan.card.name }}" class="history-img">
+            {% else %}
+            <div class="history-img history-img-placeholder">◉</div>
+            {% endif %}
+
+            <div class="history-info">
+                <strong class="history-card-name">{{ scan.card.name }}</strong>
+                <span class="history-set">{{ scan.card.set_name }}
+                    {% if scan.card.set_number %} · {{ scan.card.set_number }}{% endif %}
+                </span>
+                <div class="history-badges">
+                    {% if scan.card.pokemon_type %}
+                    <span class="badge badge-type">{{ scan.card.pokemon_type }}</span>
+                    {% endif %}
+                    {% if scan.card.rarity %}
+                    <span class="badge badge-rarity">{{ scan.card.rarity }}</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="history-meta">
+                <span class="history-confidence">{{ (scan.confidence * 100)|int }}% conf.</span>
+                <span class="history-time">
+                    {{ (scan.scanned_at + timedelta(hours=10)).strftime('%d %b %Y') }}
+                </span>
+                <span class="history-time-sub">
+                    {{ (scan.scanned_at + timedelta(hours=10)).strftime('%I:%M %p') }}
+                </span>
+            </div>
+
+            <div class="history-value">
+                ${{ "%.2f"|format(scan.card.market_value or 0) }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- No results message -->
+    <div id="historyEmpty" class="empty-state" style="display:none;">
+        <p class="empty-icon">🔍</p>
+        <p>No scans match your filter.</p>
+    </div>
+
+    {% else %}
+    <div class="empty-state">
+        <p class="empty-icon">📋</p>
+        <h2>No scans yet</h2>
+        <p>Your scan history will appear here after you scan your first card.</p>
+        <a href="{{ url_for('scanner.home') }}" class="btn btn-primary">Open Scanner</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const searchInput = document.getElementById('historySearch');
+const sortSelect  = document.getElementById('historySort');
+const historyList = document.getElementById('historyList');
+const emptyMsg    = document.getElementById('historyEmpty');
+
+function filterAndSort() {
+    const query = searchInput ? searchInput.value.toLowerCase() : '';
+    const sort  = sortSelect ? sortSelect.value : 'newest';
+    const items = Array.from(document.querySelectorAll('.history-item'));
+
+    // Filter
+    let visible = items.filter(item => {
+        const name = item.dataset.name || '';
+        return name.includes(query);
+    });
+
+    // Hide all first
+    items.forEach(i => i.style.display = 'none');
+
+    // Sort
+    visible.sort((a, b) => {
+        if (sort === 'newest')     return new Date(b.dataset.date) - new Date(a.dataset.date);
+        if (sort === 'oldest')     return new Date(a.dataset.date) - new Date(b.dataset.date);
+        if (sort === 'confidence') return parseFloat(b.dataset.confidence) - parseFloat(a.dataset.confidence);
+        return 0;
+    });
+
+    // Show sorted visible items
+    visible.forEach(i => {
+        i.style.display = 'flex';
+        historyList.appendChild(i);
+    });
+
+    // Show empty message if nothing matches
+    if (emptyMsg) {
+        emptyMsg.style.display = visible.length === 0 ? 'flex' : 'none';
+    }
+}
+
+if (searchInput) searchInput.addEventListener('input', filterAndSort);
+if (sortSelect)  sortSelect.addEventListener('change', filterAndSort);
+</script>
+{% endblock %}
