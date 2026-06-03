@@ -38,14 +38,13 @@
            class="nav-link admin-link {% if request.blueprint == 'admin' %}active{% endif %}">
             ⚙ Admin
         </a>
-        <a href="{{ url_for('profile.my_profile') }}" class="nav-username">
-            {{ current_user.username }}
-        </a>
         {% endif %}
     </div>
 
     <div class="nav-user">
-        <span class="nav-username">{{ current_user.username }}</span>
+        <a href="{{ url_for('profile.my_profile') }}" class="nav-username">
+            {{ current_user.username }}
+        </a>
         <a href="{{ url_for('auth.logout') }}" class="btn btn-ghost btn-sm">Logout</a>
         <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle theme">☀️</button>
     </div>
@@ -59,6 +58,7 @@
 {% if current_user.is_authenticated %}
 <div class="nav-drawer" id="navDrawer">
     <a href="{{ url_for('scanner.home') }}"      class="drawer-link">Scanner</a>
+    <a href="{{ url_for('profile.my_profile') }}"  class="drawer-link">My Profile</a>
     <a href="{{ url_for('collection.library') }}" class="drawer-link">My Library</a>
     <a href="{{ url_for('collection.decks') }}"   class="drawer-link">My Decks</a>
     <a href="{{ url_for('collection.wishlist') }}" class="drawer-link">Wishlist</a>
