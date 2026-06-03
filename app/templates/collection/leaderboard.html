@@ -17,6 +17,16 @@
         <a href="{{ url_for('collection.leaderboard') }}" class="sub-link active">Leaderboard</a>
     </div>
 
+ <!-- ── User search ── -->
+    <div class="user-search-wrap">
+        <input type="text"
+               id="userSearch"
+               class="form-input"
+               placeholder="🔍 Search trainers by username…"
+               autocomplete="off">
+        <div class="user-search-results" id="searchResults" style="display:none;"></div>
+    </div>
+
     <div class="leaderboard">
         {% for user in users %}
         <div class="lb-row {% if user.id == current_user.id %}lb-you{% endif %}
@@ -43,4 +53,52 @@
         {% endfor %}
     </div>
 </div>
+{% endblock %}
+
+
+
+{% block extra_js %}
+<script>
+const searchInput   = document.getElementById('userSearch');
+const searchResults = document.getElementById('searchResults');
+ 
+// All usernames from the leaderboard for client-side search
+const allUsers = [
+    {% for user in users %}
+    { username: "{{ user.username }}", url: "{{ url_for('profile.public_profile', username=user.username) }}" },
+    {% endfor %}
+];
+ 
+searchInput.addEventListener('input', () => {
+    const query = searchInput.value.trim().toLowerCase();
+ 
+    if (query.length < 1) {
+        searchResults.style.display = 'none';
+        return;
+    }
+ 
+    const matches = allUsers.filter(u => u.username.toLowerCase().includes(query));
+ 
+    if (matches.length === 0) {
+        searchResults.innerHTML = '<div class="search-result-empty">No trainers found</div>';
+    } else {
+        searchResults.innerHTML = matches.map(u => `
+            <a href="${u.url}" class="search-result-item">
+                <div class="search-result-avatar">${u.username[0].toUpperCase()}</div>
+                <span>${u.username}</span>
+                <span class="search-result-arrow">→</span>
+            </a>
+        `).join('');
+    }
+ 
+    searchResults.style.display = 'block';
+});
+ 
+// Hide results when clicking outside
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.user-search-wrap')) {
+        searchResults.style.display = 'none';
+    }
+});
+</script>
 {% endblock %}
