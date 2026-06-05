@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Search Trainers — PokéScan{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Find Trainers</h1>
+            <p class="page-subtitle">Search for other trainers to view their profiles or trade cards</p>
+        </div>
+    </div>
+
+    <!-- ── Search bar  -->
+    <form method="GET" action="{{ url_for('collection.search_users') }}" class="search-page-form">
+        <div class="search-page-input-wrap">
+            <span class="search-page-icon">🔍</span>
+            <input type="text"
+                   name="q"
+                   class="search-page-input"
+                   placeholder="Search by username…"
+                   value="{{ query }}"
+                   autofocus
+                   autocomplete="off">
+            <button type="submit" class="btn btn-primary">Search</button>
+        </div>
+    </form>
+
+    <!-- ── Results  -->
+    {% if query %}
+        {% if results %}
+        <p class="search-results-count">
+            {{ results|length }} trainer{{ 's' if results|length != 1 }} found for
+            <strong>"{{ query }}"</strong>
+        </p>
+        <div class="search-results-grid">
+            {% for user in results %}
+            <a href="{{ url_for('profile.public_profile', username=user.username) }}"
+               class="search-result-card">
+                <div class="search-result-card-avatar">
+                    {{ user.username[0].upper() }}
+                </div>
+                <div class="search-result-card-info">
+                    <strong class="search-result-card-name">{{ user.username }}</strong>
+                    <span class="search-result-card-meta">
+                        {{ user.unique_card_count }} cards &nbsp;·&nbsp;
+                        ${{ "%.2f"|format(user.collection_value) }} AUD
+                    </span>
+                    <span class="search-result-card-joined">
+                        Trainer since {{ user.created_at.strftime('%b %Y') }}
+                    </span>
+                </div>
+                <div class="search-result-card-actions">
+                    <span class="btn btn-ghost btn-sm">View Profile →</span>
+                    {% if user.id != current_user.id %}
+                    <a href="{{ url_for('trade.offer', username=user.username) }}"
+                       class="btn btn-primary btn-sm"
+                       onclick="event.stopPropagation()">⇄ Trade</a>
+                    {% endif %}
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+
+        {% else %}
+        <div class="empty-state">
+            <p class="empty-icon">🔍</p>
+            <h2>No trainers found</h2>
+            <p>No one matched "<strong>{{ query }}</strong>" — try a different name.</p>
+        </div>
+        {% endif %}
+
+    {% else %}
+    <!-- ── No search yet — show all users ─────────-->
+    <p class="search-results-count">All trainers ({{ all_users|length }})</p>
+    <div class="search-results-grid">
+        {% for user in all_users %}
+        <a href="{{ url_for('profile.public_profile', username=user.username) }}"
+           class="search-result-card">
+            <div class="search-result-card-avatar">
+                {{ user.username[0].upper() }}
+            </div>
+            <div class="search-result-card-info">
+                <strong class="search-result-card-name">{{ user.username }}</strong>
+                <span class="search-result-card-meta">
+                    {{ user.unique_card_count }} cards &nbsp;·&nbsp;
+                    ${{ "%.2f"|format(user.collection_value) }} AUD
+                </span>
+                <span class="search-result-card-joined">
+                    Trainer since {{ user.created_at.strftime('%b %Y') }}
+                </span>
+            </div>
+            <div class="search-result-card-actions">
+                <span class="btn btn-ghost btn-sm">View Profile →</span>
+                {% if user.id != current_user.id %}
+                <a href="{{ url_for('trade.offer', username=user.username) }}"
+                   class="btn btn-primary btn-sm"
+                   onclick="event.stopPropagation()">⇄ Trade</a>
+                {% endif %}
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

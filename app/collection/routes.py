@@ -1,7 +1,7 @@
 from flask import render_template, redirect, url_for, flash, request, jsonify
 from flask_login import login_required, current_user
 from . import collection_bp
-from ..models import Card, Scan, Deck, DeckCard, WishlistItem, User
+from ..models import Card, Scan, Deck, DeckCard, WishlistItem, User, DeckRating
 from .. import db
 from ..config import Config
 from .. import csrf
@@ -10,7 +10,7 @@ from datetime import timedelta
 
 
 
-# ── Library ───────────────────────────────────────────────────────────────────
+# ── Library ────
 
 @collection_bp.route('/library')
 @login_required
@@ -38,7 +38,7 @@ def library():
                            total_value=current_user.collection_value)
 
 
-# ── Leaderboard ───────────────────────────────────────────────────────────────
+# ── Leaderboard ─────────
 
 @collection_bp.route('/leaderboard')
 @login_required
@@ -49,7 +49,7 @@ def leaderboard():
     return render_template('collection/leaderboard.html', users=ranked)
 
 
-# ── Decks ─────────────────────────────────────────────────────────────────────
+# ── Decks ─────
 
 @collection_bp.route('/decks')
 @login_required
@@ -129,7 +129,8 @@ def add_to_deck(deck_id):
     return jsonify({
         'success': True,
         'message': f'{card.name} added to {deck.name}!',
-        'total_cards': deck.total_cards
+        'total_cards': deck.total_cards,
+        'total_value': deck.total_value
     })
 
 
@@ -154,7 +155,7 @@ def remove_from_deck(deck_id):
         db.session.delete(existing)
 
     db.session.commit()
-    return jsonify({'success': True, 'total_cards': deck.total_cards})
+    return jsonify({'success': True, 'total_cards': deck.total_cards, 'total_value': deck.total_value})
 
 
 @collection_bp.route('/decks/<int:deck_id>/delete', methods=['POST'])
@@ -172,7 +173,7 @@ def delete_deck(deck_id):
     return redirect(url_for('collection.decks'))
 
 
-# ── Wishlist ──────────────────────────────────────────────────────────────────
+# ── Wishlist ───────────
 
 @collection_bp.route('/wishlist')
 @login_required
@@ -238,3 +239,142 @@ def scan_history():
     return render_template('collection/scan_history.html',
                            scans=scans,
                            timedelta=timedelta)
+
+@collection_bp.route('/search')
+@login_required
+def search_users():
+    """Search for other users by username."""
+    query = request.args.get('q', '').strip()
+    results = []
+ 
+    # All non-admin users for the default view
+    all_users = User.query.filter_by(role='user').order_by(User.username).all()
+ 
+    if query:
+        results = User.query.filter(
+            User.username.ilike(f'%{query}%'),
+            User.role == 'user'
+        ).all()
+ 
+    return render_template('collection/search_users.html',
+                           query=query,
+                           results=results,
+                           all_users=all_users)
+
+
+@collection_bp.route('/decks/public')
+@login_required
+def public_decks():
+    """Browse all public decks from all users."""
+    public_decks = Deck.query.filter_by(is_public=True)\
+                             .order_by(Deck.created_at.desc()).all()
+    return render_template('collection/public_decks.html', public_decks=public_decks)
+ 
+ 
+@collection_bp.route('/decks/public/<int:deck_id>')
+@login_required
+def view_public_deck(deck_id):
+    """View a single public deck with ratings."""
+    deck = Deck.query.get_or_404(deck_id)
+    if not deck.is_public and deck.user_id != current_user.id:
+        flash('This deck is private.', 'warning')
+        return redirect(url_for('collection.public_decks'))
+ 
+    # Get current user's existing rating if any
+    user_rating = DeckRating.query.filter_by(
+        deck_id=deck_id,
+        user_id=current_user.id
+    ).first()
+ 
+    return render_template('collection/view_public_deck.html',
+                           deck=deck,
+                           user_rating=user_rating)
+ 
+ 
+@collection_bp.route('/decks/<int:deck_id>/toggle_public', methods=['POST'])
+@login_required
+def toggle_deck_public(deck_id):
+    """Toggle a deck between public and private."""
+    deck = Deck.query.get_or_404(deck_id)
+    if deck.user_id != current_user.id:
+        flash('Access denied.', 'danger')
+        return redirect(url_for('collection.decks'))
+ 
+    deck.is_public = not deck.is_public
+    db.session.commit()
+    status = 'public' if deck.is_public else 'private'
+    flash(f'"{deck.name}" is now {status}!', 'success')
+    return redirect(url_for('collection.deck_detail', deck_id=deck_id))
+ 
+
+
+@collection_bp.route('/decks/<int:deck_id>/rate', methods=['POST'])
+@login_required
+@csrf.exempt
+def rate_deck(deck_id):
+    """Rate a public deck 1-5 stars."""
+    deck = Deck.query.get_or_404(deck_id)
+ 
+    if not deck.is_public:
+        return jsonify({'success': False, 'message': 'Deck is not public.'})
+ 
+    if deck.user_id == current_user.id:
+        return jsonify({'success': False, 'message': "You can't rate your own deck."})
+ 
+    rating_val = request.json.get('rating', type=int)
+    if not rating_val or rating_val < 1 or rating_val > 5:
+        return jsonify({'success': False, 'message': 'Rating must be between 1 and 5.'})
+ 
+    # Update existing rating or create new one
+    existing = DeckRating.query.filter_by(
+        deck_id=deck_id, user_id=current_user.id
+    ).first()
+ 
+    if existing:
+        existing.rating = rating_val
+    else:
+        db.session.add(DeckRating(
+            deck_id=deck_id,
+            user_id=current_user.id,
+            rating=rating_val
+        ))
+ 
+    db.session.commit()
+    return jsonify({
+        'success':        True,
+        'message':        f'Rated {rating_val} stars!',
+        'average_rating': deck.average_rating,
+        'rating_count':   deck.rating_count
+    })
+ 
+ 
+@collection_bp.route('/decks/<int:deck_id>/copy', methods=['POST'])
+@login_required
+def copy_deck(deck_id):
+    """Copy a public deck into the current user's collection."""
+    original = Deck.query.get_or_404(deck_id)
+ 
+    if not original.is_public:
+        flash('This deck is not public.', 'warning')
+        return redirect(url_for('collection.public_decks'))
+ 
+    # Create new deck for current user
+    new_deck = Deck(
+        user_id=current_user.id,
+        name=f'{original.name} (copy)',
+        description=f'Copied from {original.user.username}\'s deck.'
+    )
+    db.session.add(new_deck)
+    db.session.flush()
+ 
+    # Copy all cards
+    for dc in original.deck_cards:
+        db.session.add(DeckCard(
+            deck_id=new_deck.id,
+            card_id=dc.card_id,
+            quantity=dc.quantity
+        ))
+ 
+    db.session.commit()
+    flash(f'"{original.name}" copied to your decks!', 'success')
+    return redirect(url_for('collection.deck_detail', deck_id=new_deck.id))

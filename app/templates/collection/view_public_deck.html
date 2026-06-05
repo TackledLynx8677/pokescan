@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% block title %}{{ deck.name }} by {{ deck.user.username }} — PokéScan{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">{{ deck.name }}</h1>
+            <p class="page-subtitle">
+                By <a href="{{ url_for('profile.public_profile', username=deck.user.username) }}">{{ deck.user.username }}</a>
+                &nbsp;·&nbsp; {{ deck.total_cards }}/60 cards
+                &nbsp;·&nbsp; ${{ "%.2f"|format(deck.total_value) }} AUD
+            </p>
+        </div>
+        <a href="{{ url_for('collection.public_decks') }}" class="btn btn-ghost">← Public Decks</a>
+    </div>
+
+    <!-- Rating + Copy bar -->
+    <div class="deck-action-bar">
+        <div class="deck-rating-display">
+            <span class="deck-rating-stars" id="avgStars">
+                {% for i in range(1, 6) %}
+                <span class="star {% if i <= deck.average_rating %}star-filled{% endif %}">★</span>
+                {% endfor %}
+            </span>
+            <span class="deck-rating-text" id="ratingText">
+                {% if deck.rating_count > 0 %}
+                    {{ deck.average_rating }} / 5 &nbsp;({{ deck.rating_count }} rating{{ 's' if deck.rating_count != 1 }})
+                {% else %}No ratings yet{% endif %}
+            </span>
+        </div>
+
+        <div class="deck-action-buttons">
+            {% if deck.user_id != current_user.id %}
+            <div class="star-picker" id="starPicker">
+                <span class="star-picker-label">Rate:</span>
+                {% for i in range(1, 6) %}
+                <button class="star-pick {% if user_rating and user_rating.rating >= i %}star-pick-filled{% endif %}"
+                        onclick="rateDeck({{ i }})" data-val="{{ i }}">★</button>
+                {% endfor %}
+            </div>
+            <form method="POST" action="{{ url_for('collection.copy_deck', deck_id=deck.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-primary btn-sm">📋 Copy Deck</button>
+            </form>
+            {% endif %}
+            {% if deck.user_id == current_user.id %}
+            <form method="POST" action="{{ url_for('collection.toggle_deck_public', deck_id=deck.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-ghost btn-sm">
+                    {{ '🔓 Make Private' if deck.is_public else '🔑 Make Public' }}
+                </button>
+            </form>
+            <a href="{{ url_for('collection.deck_detail', deck_id=deck.id) }}" class="btn btn-primary btn-sm">Edit Deck</a>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if deck.description %}<p class="public-deck-full-desc">{{ deck.description }}</p>{% endif %}
+
+    <div class="confidence-bar-wrap" style="margin-bottom:1.5rem;">
+        <span class="confidence-label">Deck Size</span>
+        <div class="confidence-track">
+            <div class="confidence-fill" style="width:{{ [deck.total_cards/60*100, 100]|min }}%"></div>
+        </div>
+        <span class="confidence-pct">{{ deck.total_cards }}/60</span>
+    </div>
+
+    {% if deck.deck_cards %}
+    <div class="card-grid">
+        {% for dc in deck.deck_cards %}
+        <div class="poke-card {{ dc.card.rarity_colour }}">
+            {% if dc.card.image_url %}
+            <div class="poke-card-img"><img src="{{ dc.card.image_url }}" alt="{{ dc.card.name }}" loading="lazy"></div>
+            {% else %}
+            <div class="poke-card-img poke-card-img-placeholder"><span>◉</span></div>
+            {% endif %}
+            <div class="poke-card-body">
+                <div class="poke-card-header">
+                    <h3 class="poke-card-name">{{ dc.card.name }}</h3>
+                    {% if dc.card.hp %}<span class="poke-card-hp">HP {{ dc.card.hp }}</span>{% endif %}
+                </div>
+                <div class="poke-card-meta">
+                    <span class="badge badge-type">{{ dc.card.pokemon_type or dc.card.card_type }}</span>
+                    {% if dc.card.rarity %}<span class="badge badge-rarity">{{ dc.card.rarity }}</span>{% endif %}
+                </div>
+                <p class="poke-card-set">{{ dc.card.set_name }}</p>
+            </div>
+            <div class="poke-card-footer">
+                <span class="card-value">${{ "%.2f"|format(dc.card.market_value or 0) }}</span>
+                <span class="card-scans">×{{ dc.quantity }}</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    <div class="toast" id="toast"></div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const DECK_ID = {{ deck.id }};
+function showToast(msg, ok=true) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast ' + (ok ? 'toast-ok' : 'toast-err') + ' show';
+    setTimeout(() => t.classList.remove('show'), 3000);
+}
+async function rateDeck(stars) {
+    const res  = await fetch(`/collection/decks/${DECK_ID}/rate`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({rating: stars})
+    });
+    const data = await res.json();
+    showToast(data.message, data.success);
+    if (data.success) {
+        document.querySelectorAll('.star-pick').forEach(btn => {
+            btn.classList.toggle('star-pick-filled', parseInt(btn.dataset.val) <= stars);
+        });
+        document.getElementById('ratingText').textContent =
+            `${data.average_rating} / 5 (${data.rating_count} rating${data.rating_count !== 1 ? 's' : ''})`;
+        document.querySelectorAll('#avgStars .star').forEach((s, i) => {
+            s.classList.toggle('star-filled', i < Math.round(data.average_rating));
+        });
+    }
+}
+document.querySelectorAll('.star-pick').forEach(btn => {
+    btn.addEventListener('mouseenter', () => {
+        const val = parseInt(btn.dataset.val);
+        document.querySelectorAll('.star-pick').forEach(b => {
+            b.classList.toggle('star-pick-hover', parseInt(b.dataset.val) <= val);
+        });
+    });
+    btn.addEventListener('mouseleave', () => {
+        document.querySelectorAll('.star-pick').forEach(b => b.classList.remove('star-pick-hover'));
+    });
+});
+</script>
+{% endblock %}

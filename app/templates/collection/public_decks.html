@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}Public Decks — PokéScan{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Public Decks</h1>
+            <p class="page-subtitle">Browse decks shared by the community</p>
+        </div>
+        <a href="{{ url_for('collection.decks') }}" class="btn btn-ghost">My Decks</a>
+    </div>
+
+    <!-- ── Search/filter ───── -->
+    <div class="search-page-form" style="margin-bottom:1.5rem;">
+        <div class="search-page-input-wrap">
+            <span class="search-page-icon">🔍</span>
+            <input type="text" id="deckSearch" class="search-page-input"
+                   placeholder="Search decks by name or trainer…">
+        </div>
+    </div>
+
+    {% if public_decks %}
+    <div class="public-decks-grid" id="deckGrid">
+        {% for deck in public_decks %}
+        <div class="public-deck-card" data-name="{{ deck.name.lower() }}"
+             data-owner="{{ deck.user.username.lower() }}">
+
+            <div class="public-deck-header">
+                <div>
+                    <h3 class="public-deck-name">{{ deck.name }}</h3>
+                    <a href="{{ url_for('profile.public_profile', username=deck.user.username) }}"
+                       class="public-deck-owner" onclick="event.stopPropagation()">
+                        <div class="trade-avatar" style="width:20px;height:20px;font-size:0.7rem;">
+                            {{ deck.user.username[0].upper() }}
+                        </div>
+                        {{ deck.user.username }}
+                    </a>
+                </div>
+                <div class="public-deck-stats">
+                    <span>{{ deck.total_cards }}/60</span>
+                    <span class="deck-value-badge">${{ "%.2f"|format(deck.total_value) }}</span>
+                </div>
+            </div>
+
+            {% if deck.description %}
+            <p class="public-deck-desc">{{ deck.description }}</p>
+            {% endif %}
+
+            <!-- Card preview images -->
+            <div class="public-deck-preview">
+                {% for dc in deck.deck_cards[:5] %}
+                {% if dc.card.image_url %}
+                <img src="{{ dc.card.image_url }}" alt="{{ dc.card.name }}"
+                     class="public-deck-preview-img" title="{{ dc.card.name }}">
+                {% endif %}
+                {% endfor %}
+                {% if deck.deck_cards|length > 5 %}
+                <div class="public-deck-preview-more">+{{ deck.deck_cards|length - 5 }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Deck size bar -->
+            <div class="confidence-bar-wrap" style="padding:0;border:none;background:none;gap:0.5rem;">
+                <div class="confidence-track" style="flex:1;">
+                    <div class="confidence-fill"
+                         style="width:{{ [deck.total_cards/60*100, 100]|min }}%"></div>
+                </div>
+                <span style="font-size:0.75rem;color:var(--text-dim);">{{ deck.total_cards }}/60</span>
+            </div>
+
+            <div class="public-deck-footer">
+                <a href="{{ url_for('collection.view_public_deck', deck_id=deck.id) }}"
+                   class="btn btn-primary btn-sm">View Deck →</a>
+                {% if deck.user_id == current_user.id %}
+                <span class="badge badge-type">Your Deck</span>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div id="noDecksFound" class="empty-state" style="display:none;">
+        <p class="empty-icon">🃏</p>
+        <p>No decks match your search.</p>
+    </div>
+
+    {% else %}
+    <div class="empty-state">
+        <p class="empty-icon">🃏</p>
+        <h2>No public decks yet</h2>
+        <p>Be the first to share a deck with the community!</p>
+        <a href="{{ url_for('collection.decks') }}" class="btn btn-primary">My Decks</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const deckSearch = document.getElementById('deckSearch');
+const deckGrid   = document.getElementById('deckGrid');
+const noFound    = document.getElementById('noDecksFound');
+
+if (deckSearch) {
+    deckSearch.addEventListener('input', () => {
+        const q = deckSearch.value.toLowerCase();
+        const cards = document.querySelectorAll('.public-deck-card');
+        let visible = 0;
+        cards.forEach(card => {
+            const match = card.dataset.name.includes(q) || card.dataset.owner.includes(q);
+            card.style.display = match ? '' : 'none';
+            if (match) visible++;
+        });
+        if (noFound) noFound.style.display = visible === 0 ? 'flex' : 'none';
+    });
+}
+</script>
+{% endblock %}

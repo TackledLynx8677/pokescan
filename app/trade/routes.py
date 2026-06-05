@@ -3,6 +3,7 @@ from flask_login import login_required, current_user
 from . import trade_bp
 from ..models import User, Card, Trade, TradeItem, Scan
 from .. import db, csrf
+from better_profanity import profanity
 
 
 @trade_bp.route('/')
@@ -50,7 +51,10 @@ def offer(username):
     if request.method == 'POST':
         offered_ids  = request.form.getlist('offered_cards', type=int)
         requested_ids = request.form.getlist('requested_cards', type=int)
-        message       = request.form.get('message', '').strip()
+        message = request.form.get('message', '').strip()
+        if message and profanity.contains_profanity(message):
+            flash('Please keep your trade message appropriate — no profanity allowed.', 'danger')
+            return redirect(url_for('trade.offer', username=username))
 
         if not offered_ids and not requested_ids:
             flash('You must select at least one card to offer or request.', 'danger')

@@ -110,6 +110,7 @@ class Deck(db.Model):
     name        = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
     created_at  = db.Column(db.DateTime, default=datetime.utcnow)
+    is_public = db.Column(db.Boolean, default=False)
 
     deck_cards  = db.relationship('DeckCard', backref='deck', lazy=True, cascade='all, delete-orphan')
 
@@ -120,6 +121,15 @@ class Deck(db.Model):
     @property
     def total_value(self):
         return round(sum((dc.card.market_value or 0) * dc.quantity for dc in self.deck_cards), 2)
+    @property
+    def average_rating(self):
+         if not self.ratings:
+            return 0
+         return round(sum(r.rating for r in self.ratings) / len(self.ratings), 1)
+
+    @property
+    def rating_count(self):
+        return len(self.ratings)
 
 
 class DeckCard(db.Model):
@@ -190,3 +200,20 @@ class TradeItem(db.Model):
     direction = db.Column(db.String(10), nullable=False)  # 'offer' or 'request'
  
     card = db.relationship('Card', backref='trade_items')
+
+
+class DeckRating(db.Model):
+    """A user's rating of a public deck (1-5 stars)."""
+    __tablename__ = 'deck_ratings'
+ 
+    id      = db.Column(db.Integer, primary_key=True)
+    deck_id = db.Column(db.Integer, db.ForeignKey('decks.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    rating  = db.Column(db.Integer, nullable=False)  # 1-5
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+ 
+    __table_args__ = (db.UniqueConstraint('deck_id', 'user_id'),)
+ 
+    deck = db.relationship('Deck', backref='ratings')
+    user = db.relationship('User', backref='deck_ratings')
+ 

@@ -59,7 +59,32 @@
     --text-muted:  #4a5068;
     --text-dim:    #8a90a8;
 }
- 
+
+[data-theme="light"] .scan-badge {
+    background: rgba(255,255,255,0.85);
+    color: #1a1a1a;
+}
+
+[data-theme="light"] .btn-primary {
+    background: var(--yellow);
+    color: #1a1a1a;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+[data-theme="light"] .btn-primary:hover {
+    background: var(--yellow-dim);
+    color: #1a1a1a;
+}
+[data-theme="light"] .btn-ghost {
+    background: rgba(0,0,0,0.04);
+    border-color: var(--border);
+    color: var(--text-muted);
+}
+[data-theme="light"] .btn-ghost:hover {
+    background: rgba(0,0,0,0.08);
+    color: var(--text);
+    border-color: var(--border-lit);
+}
+
 /* Fix navbar background in light mode */
 [data-theme="light"] .navbar {
     background: rgba(240, 242, 245, 0.95);
@@ -899,6 +924,7 @@ code {
 
 /* ── Leaderboard ─────────────────────────────────────────────────── */
 .leaderboard { display: flex; flex-direction: column; gap: 0.5rem; }
+/*
 .lb-row {
     display: flex;
     align-items: center;
@@ -909,6 +935,8 @@ code {
     padding: 0.9rem 1.25rem;
     transition: var(--transition);
 }
+*/
+
 .lb-row:hover { border-color: var(--border-lit); }
 .lb-gold   { border-left: 3px solid #FFD700; }
 .lb-silver { border-left: 3px solid #C0C0C0; }
@@ -1495,3 +1523,289 @@ code {
     font-weight: 700;
     font-size: 0.85rem;
 }
+
+
+
+
+/* ── Search page  */
+.search-page-form {
+    margin-bottom: 1.5rem;
+}
+.search-page-input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.5rem 0.75rem;
+    transition: var(--transition);
+}
+.search-page-input-wrap:focus-within {
+    border-color: var(--yellow);
+    box-shadow: 0 0 0 3px rgba(255,215,0,0.1);
+}
+.search-page-icon { font-size: 1.1rem; flex-shrink: 0; }
+.search-page-input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: 'Nunito', sans-serif;
+    font-size: 1rem;
+}
+ 
+.search-results-count {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+}
+ 
+.search-results-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+ 
+.search-result-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    text-decoration: none;
+    color: var(--text);
+    transition: var(--transition);
+}
+.search-result-card:hover {
+    border-color: var(--yellow);
+    background: rgba(255,215,0,0.03);
+    transform: translateX(4px);
+    color: var(--text);
+}
+ 
+.search-result-card-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--yellow), var(--yellow-dim));
+    color: #0e0e14;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 1.4rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+ 
+.search-result-card-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+.search-result-card-name {
+    font-size: 1rem;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+}
+.search-result-card-meta {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+.search-result-card-joined {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+}
+ 
+.search-result-card-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+ 
+/* ── Public decks grid ───────────────────────────────────────────── */
+.public-decks-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+.public-deck-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    transition: var(--transition);
+}
+.public-deck-card:hover {
+    border-color: var(--yellow);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+
+.public-deck-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+.public-deck-name {
+    font-size: 1.1rem;
+    font-family: 'Rajdhani', sans-serif;
+}
+.public-deck-owner {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    margin-top: 0.2rem;
+}
+.public-deck-owner:hover { color: var(--yellow); }
+
+.public-deck-stats {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.2rem;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+.deck-value-badge {
+    color: var(--green);
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.public-deck-desc {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+}
+
+.public-deck-preview {
+    display: flex;
+    gap: 0.3rem;
+    align-items: center;
+}
+.public-deck-preview-img {
+    width: 36px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+}
+.public-deck-preview-more {
+    width: 36px;
+    height: 50px;
+    background: var(--bg-card2);
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--text-muted);
+}
+
+.public-deck-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+}
+
+.public-deck-full-desc {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 0.85rem 1rem;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+}
+
+/* ── Deck action bar  */
+.deck-action-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+}
+
+.deck-rating-display {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.deck-rating-stars .star       { color: var(--text-dim); font-size: 1.2rem; }
+.deck-rating-stars .star-filled { color: var(--yellow); }
+.deck-rating-text {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.deck-action-buttons {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+/* Star picker */
+.star-picker {
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+}
+.star-picker-label {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-right: 0.2rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.star-pick {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.4rem;
+    color: var(--text-dim);
+    padding: 0;
+    line-height: 1;
+    transition: var(--transition);
+}
+.star-pick:hover,
+.star-pick-hover,
+.star-pick-filled { color: var(--yellow); }
+
+/* Rating on public deck cards */
+.public-deck-rating {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+}
+.public-deck-rating .star       { color: var(--text-dim); }
+.public-deck-rating .star-filled { color: var(--yellow); }
